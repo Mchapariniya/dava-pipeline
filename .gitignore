@@ -15,7 +15,6 @@ output/
 *.mp3
 *.mp4
 *.eaf
-*_whisperx.json
 preview*.html
 *.tar.zst
 *.tgz
