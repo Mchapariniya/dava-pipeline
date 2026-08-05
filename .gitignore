@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+
+# Environments / secrets
+.env
+config.yaml            # keep config.yaml.example in git; real config is local
+
+# Large media & generated outputs (keep code, not data)
+data/
+output/
+*.wav
+*.mp3
+*.mp4
+*.eaf
+*_whisperx.json
+preview*.html
+*.tar.zst
+*.tgz
+
+# Ollama models (huge; live under $OLLAMA_MODELS)
+ollama/
+models/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

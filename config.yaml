@@ -1,0 +1,36 @@
+# DAVA Batch Processing Pipeline Configuration
+
+# Stage control
+stage: 2
+stop_stage: 2
+
+
+# Data paths
+data_dir: "/data/arfarh/ScriptsForVoxBlink2-main/AV_VoxBlinkdata"  # Directory to search for files
+file_extension: "mp4"  # File extension to search for (mp4, mp3, wav, flac, etc.)
+csv_file: "/home/arfarh/DAVA/VoxBlink2_mp4_manifest.csv"  # Output manifest file (stage 1) or input file (stage 2)
+
+
+out_dir: "/home/arfarh/DAVA/VoxBlink2_out_my_pipeline3"  # Output directory for processed files
+
+# ASR Configuration
+asr_backend: "transformers"  # "transformers" | "openai"
+asr_model: "distil-whisper/distil-large-v3.5"  # ASR model name
+lang: ""  # Language code (empty for auto-detection)
+lang_detection_model: "base"  # tiny, base, small, medium, large
+
+# Processing Configuration
+gpu_index: 6
+batch_size: 32  # Number of files to process before generating speaker JSON
+num_speakers: ""  # Number of speakers (empty for auto-detection)
+hf_token: ""  # HuggingFace token for diarization
+
+# Topic Detection Configuration
+enable_topic_detection: true
+topic_model_id: "Qwen/Qwen3-0.6B"
+qwen_python_path: "/local/scratch/arfarh/Qwen/qwen3-env/bin/python3"  # Qwen virtual environment
+topic_verbose: false
+
+# Python Environment Paths
+dava_python_path: "/home/arfarh/DAVA/dava-env/bin/python"  # (main pipeline)
+
