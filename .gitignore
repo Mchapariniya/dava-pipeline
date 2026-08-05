@@ -12,7 +12,6 @@ config.yaml            # keep config.yaml.example in git; real config is local
 # Large media & generated outputs (keep code, not data)
 data/
 output/
-*.wav
 *.mp3
 *.mp4
 *.eaf
