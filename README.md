@@ -1,7 +1,7 @@
-# DAVA — Data Audio/Video Analysis
+# DAVA: Data Audio/Video Analysis
 
 Local, end-to-end pipeline that turns a recording into a transcribed, diarized,
-annotated and **searchable** document — with an ELAN export for linguistic work
+annotated and **searchable** document, with an ELAN export for linguistic work
 and a semantic, cross-lingual (DE/EN/FR) Q&A that cites audio timestamps. No
 external APIs; generation runs on a local Ollama model.
 

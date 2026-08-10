@@ -35,14 +35,15 @@ DEFAULT_MODEL = "qwen2.5:7b"
 
 class OllamaGenerator:
     def __init__(self, model: str = DEFAULT_MODEL, url: str = DEFAULT_OLLAMA_URL,
-                 temperature: float = 0.2, num_predict: int = 1024,
-                 timeout: int = 180, max_retries: int = 2):
+                 temperature: float = 0.1, num_predict: int = 1024,
+                 timeout: int = 180, max_retries: int = 2,  seed: int = 42):
         self.model = model
         self.url = url.rstrip("/")
         self.temperature = temperature
         self.num_predict = num_predict
         self.timeout = timeout
         self.max_retries = max_retries
+        self.seed = seed
 
     # -- readiness check (nice for the dashboard to show a clear message) ----- #
     def available(self) -> Tuple[bool, str]:
@@ -79,7 +80,7 @@ class OllamaGenerator:
                 {"role": "user", "content": user},
             ],
             "stream": False,
-            "options": {"temperature": self.temperature, "num_predict": self.num_predict},
+            "options": {"temperature": self.temperature, "num_predict": self.num_predict, "seed": self.seed},
         }
 
         answer = ""
