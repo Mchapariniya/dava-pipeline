@@ -124,7 +124,7 @@ The instructions below are written for Linux, which is what the project is devel
 - **ffmpeg** (to read and convert audio). The guide shows how to install it with conda.
 
 ### Accounts
-**A Hugging Face account and access token.** The speaker-diarization models are gated, which means you must accept their terms once and use a personal token to download them. Create a free account at huggingface.co, then create a token under Settings, Access Tokens. Keep this token private and never share it or commit it to a public place.
+**A Hugging Face account and access token.** The speaker-diarization models are gated, which means you must accept their terms once and use a personal token to download them. Create a free account at huggingface.co, then create a token under Settings, Access Tokens. Keep this token private and never share it or commit it to a public place. You can also export it as `HF_TOKEN` so the dashboard's Transcribe tab fills it in for you.
 
 ## 6. Getting the code
 
@@ -154,6 +154,8 @@ conda activate pipeline
 pip install -r requirements_pipeline.txt
 conda install -c conda-forge ffmpeg -y
 ```
+
+This installs everything the transcription stage needs, including `demucs` for audio cleaning. If you built this environment from an older requirements file and later see `No module named 'demucs'`, run `pip install "demucs>=4.0"` here.
 
 > [!WARNING]
 > **If you see a driver error.** If importing the deep-learning library later reports that your NVIDIA driver is too old, it means the installed version was built for a newer graphics driver than yours. Reinstall a matching version, for example for a CUDA 12.8 capable driver:
@@ -205,6 +207,8 @@ ollama pull qwen2.5:7b
 ## 9. Running the pipeline, step by step
 
 These commands assume you have a recording to process. A small sample transcript is included in the `samples` folder so you can also try the dashboard immediately without running these steps.
+
+If you would rather not use the command line at all, you can run stages 1 and 2 from the dashboard instead: see [The Transcribe tab](#the-transcribe-tab-create-a-transcript-in-the-browser) in Section 10.
 
 ### 9.1 Clean the audio (environment: pipeline)
 
@@ -274,6 +278,7 @@ On the left is a sidebar where you load a transcript (upload a `_whisperx.json` 
 
 | Tab | What it shows |
 |---|---|
+| **Transcribe** | Upload an audio or video file and run the speech-to-text pipeline from the browser. See below. |
 | **Overview** | A summary: length, number of words, number of speakers, main language, plus who spoke the most. |
 | **Words** | The most frequent words as a word cloud and a ranked chart. |
 | **Topics** | The main themes discovered in the recording. A longer bar means the theme covers more of the recording. |
@@ -282,7 +287,16 @@ On the left is a sidebar where you load a transcript (upload a `_whisperx.json` 
 | **Transcript** | The full text, line by line, labelled by speaker and time. |
 | **ELAN** | The transcript and its layers on a playable timeline; export to ELAN from here. |
 | **Ask** | Ask a question in plain language and get an answer with timestamps (Section 11). |
-| **Export** | Download the enriched data, the charts and the ELAN file. |
+| **Export** | Download the transcript JSON, the charts, and the ELAN file. The transcript JSON download is at the top of this tab. |
+
+### The Transcribe tab (create a transcript in the browser)
+
+The **Transcribe** tab turns a raw audio or video file into a transcript without the command line. Upload a file, set the language, the number of speakers, and the GPU, paste your Hugging Face token (or export `HF_TOKEN` before starting the dashboard so it is filled in for you), and press **Transcribe**. It cleans the audio, transcribes, identifies speakers, and aligns the words, showing a live log. When it finishes, the transcript loads automatically, you can download it there, and pressing **Run analysis** in the sidebar adds the topics, sentiment, emotion, and names.
+
+Behind the scenes it runs the same `pipeline` scripts as the command line, in the `pipeline` environment, so nothing about the pipeline itself changes.
+
+> [!NOTE]
+> **Two setup notes for the Transcribe tab.** First, the dashboard has to find the `pipeline` environment. When both environments live under the same Miniconda it finds it automatically, and the tab's **Engine** panel shows which interpreter it will use; if it cannot find it, set `DAVA_PIPELINE_PYTHON` to the pipeline interpreter (for example `~/miniconda3/envs/pipeline/bin/python`) before starting the dashboard. Second, the audio-cleaning step needs the `demucs` package in the `pipeline` environment; if you see `No module named 'demucs'`, run `pip install "demucs>=4.0"` in that environment, or untick **Clean audio first**.
 
 ## 11. Using the Ask feature
 
@@ -309,6 +323,8 @@ After analysis, each segment of the transcript JSON carries the following inform
 
 | Problem | What to do |
 |---|---|
+| The Transcribe tab says `No module named 'demucs'` | Install it in the pipeline environment: `conda activate pipeline && pip install "demucs>=4.0"`, or untick **Clean audio first**. |
+| The Transcribe tab cannot find the pipeline environment | Set `DAVA_PIPELINE_PYTHON` to the pipeline interpreter (for example `~/miniconda3/envs/pipeline/bin/python`) before starting the dashboard. |
 | The deep-learning library says the NVIDIA driver is too old | Your library was built for a newer graphics driver than you have. Reinstall a matching version, for example with the `cu128` download index for a CUDA 12.8 driver. |
 | A download with curl returns only about nine bytes | That tiny file is an error page. The Ollama release file now ends in `.tar.zst`, not `.tgz`. Use the address in Section 8. |
 | Ollama reports `llama-server` binary not found | You are using the conda-forge package, which is incomplete. Use the `.tar.zst` release and make sure the `ollama` command points to the version in your home folder. |
@@ -352,7 +368,9 @@ dava-pipeline/
   dava_rag.py, ollama_generator.py  the Ask feature (retrieval and generation)
   elan_viz.py, elan_annotations.py  the ELAN timeline view
   streamlit_rag_tab.py              the Ask tab
+  transcribe.py                     the Transcribe tab (runs stages 1 to 2 from the UI)
   dashboard/app.py                  stage 5: the dashboard
+  docs/GUIDE.md, docs/index.html    this guide and the project website
   samples/                          a small sample transcript and audio clip
 ```
 
