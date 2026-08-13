@@ -491,6 +491,18 @@ def tab_export(data, segs):
     workdir = st.session_state["workdir"]
     base = C.base_name_from_json(st.session_state["jpath"])
 
+    # Always offer the transcript JSON itself, wherever it physically sits
+    # (uploaded, picked from disk, or produced by the Transcribe tab).
+    st.markdown("**Transcript (`.json`)** — the WhisperX transcript. If you have "
+                "pressed Run analysis, it also carries the sentiment, emotion, topic "
+                "and entity fields.")
+    with open(st.session_state["jpath"], "rb") as fh:
+        st.download_button("⬇️ Download transcript JSON", fh.read(),
+                           file_name=os.path.basename(st.session_state["jpath"]),
+                           mime="application/json", key="dl_transcript_json",
+                           type="primary")
+    st.divider()
+
     # (Re)generate the EAF on demand from the current outputs.
     st.markdown("**ELAN annotation file (`.eaf`)** — open in ELAN for linguistic work.")
     if st.button("Build / refresh EAF"):
@@ -581,40 +593,44 @@ def main():
     sidebar()
 
     st.title("DAVA Insights")
-    st.caption("Named entities · sentiment · emotion · topics · diagrams · ELAN export")
+    st.caption("Transcribe · named entities · sentiment · emotion · topics · ELAN export")
 
-    if "jpath" not in st.session_state:
-        st.info("👋 Upload a WhisperX transcription JSON in the left sidebar to get started. "
-                "You can use a raw transcript (then press **Run analysis**) or one that has "
-                "already been analysed.")
-        with st.expander("What does this tool do?"):
-            st.markdown(
-                "- **Named Entity Recognition** — people, places and organisations mentioned\n"
-                "- **Sentiment analysis** — how positive/negative each moment is\n"
-                "- **Emotion recognition** — joy, anger, fear, sadness… from the words\n"
-                "- **Topic modelling** — the main themes, discovered automatically\n"
-                "- **Diagrams** — word clouds and charts you can download\n"
-                "- **ELAN export** — a `.eaf` file for annotation software")
+    from transcribe import render_transcribe_ui   # module lives at the repo root
+
+    have = "jpath" in st.session_state
+    data = segs = None
+    if have:
+        data = C.load_transcript(st.session_state["jpath"])
+        segs = C.get_segments(data)
+        have = bool(segs)
+
+    tabs = st.tabs(["🎙️ Transcribe", "📊 Overview", "☁️ Words", "🧩 Topics",
+                    "😊 Sentiment & Emotion", "🏷️ Entities", "📝 Transcript",
+                    "🗂️ ELAN", "💬 Ask", "⬇️ Export"])
+
+    # The Transcribe tab is always available (you may not have a transcript yet).
+    with tabs[0]:
+        just_made = render_transcribe_ui()
+    if just_made:
+        st.rerun()   # reload so the analysis tabs pick up the new transcript
+
+    if not have:
+        hint = ("Load a transcript in the sidebar, or create one in the "
+                "**🎙️ Transcribe** tab. Then this tab fills in.")
+        for i in range(1, 10):
+            with tabs[i]:
+                st.info(hint)
         return
 
-    data = C.load_transcript(st.session_state["jpath"])
-    segs = C.get_segments(data)
-    if not segs:
-        st.error("This file has no segments — is it a WhisperX transcript?")
-        return
-
-    tabs = st.tabs(["📊 Overview", "☁️ Words", "🧩 Topics",
-                    "😊 Sentiment & Emotion", "🏷️ Entities",
-                    "📝 Transcript", "🗂️ ELAN", "💬 Ask", "⬇️ Export"])
-    with tabs[0]: tab_overview(data, segs)
-    with tabs[1]: tab_words(data, segs)
-    with tabs[2]: tab_topics(data, segs)
-    with tabs[3]: tab_sentiment_emotion(data, segs)
-    with tabs[4]: tab_entities(data, segs)
-    with tabs[5]: tab_transcript(data, segs)
-    with tabs[6]: tab_elan(data, segs)
-    with tabs[7]: tab_ask(data, segs)
-    with tabs[8]: tab_export(data, segs)
+    with tabs[1]: tab_overview(data, segs)
+    with tabs[2]: tab_words(data, segs)
+    with tabs[3]: tab_topics(data, segs)
+    with tabs[4]: tab_sentiment_emotion(data, segs)
+    with tabs[5]: tab_entities(data, segs)
+    with tabs[6]: tab_transcript(data, segs)
+    with tabs[7]: tab_elan(data, segs)
+    with tabs[8]: tab_ask(data, segs)
+    with tabs[9]: tab_export(data, segs)
 
 
 if __name__ == "__main__":
